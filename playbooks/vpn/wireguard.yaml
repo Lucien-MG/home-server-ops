@@ -1,0 +1,12 @@
+---
+- name: setup wireguard
+  hosts: all
+
+  become: yes
+
+  tasks:
+    - name: install the latest version of cockpit
+      ansible.builtin.package:
+        name:
+          - wireguard
+        state: latest

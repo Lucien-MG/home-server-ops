@@ -1,0 +1,11 @@
+- name: Setup Podman
+  hosts: all
+
+  become: yes
+
+  tasks:
+    - name: Install the latest version of Podman
+      ansible.builtin.package:
+        name:
+          - podman
+        state: latest

@@ -1,0 +1,60 @@
+---
+- name: jellyfin
+  hosts: all
+
+  # Gather machine informations
+  gather_facts: no
+
+  # Enable root previlegies
+  become: no
+
+  vars:
+    app_name: jellyfin
+    app_image: docker.io/linuxserver/jellyfin:10.8.12
+    app_internal_port: 8096
+    app_external_port: 35597
+    timezone: Europe/Paris
+
+  # Run suitable scripts
+  tasks:
+
+    - name: Create {{ app_name }} Config Directory
+      file:
+        path: "{{data_path}}/.config/{{app_name}}"
+        state: directory
+        mode: '0777'
+
+    - name: Create {{ app_name }} Movies Directory
+      file:
+        path: "{{data_path}}/movies"
+        state: directory
+        mode: '0755'
+
+    - name: Create {{ app_name }} TVshows Directory
+      file:
+        path: "{{data_path}}/tvshows"
+        state: directory
+        mode: '0755'
+
+    - name: Pull {{ app_name }} Image
+      containers.podman.podman_image:
+        name: "{{ app_image }}"
+        state: present
+
+    - name: Create {{app_name}} Container
+      containers.podman.podman_container:
+        name: "{{ app_name }}"
+        image: "{{ app_image }}"
+        state: started
+        recreate: yes
+        ports:
+          - "{{app_external_port}}:{{app_internal_port}}"
+        expose:
+          - "{{ app_external_port }}"
+        volumes:
+          # - "{{data_path}}/.config/{{app_name}}:/config"
+          - "{{data_path}}/movies:/data/movies"
+          - "{{data_path}}/tvshows:/data/tvshows"
+        generate_systemd:
+          path: "~/.config/systemd/user/default.target.wants"
+          restart_policy: always

@@ -1,0 +1,11 @@
+- name: Setup Drivers
+  hosts: all
+
+  become: yes
+
+  tasks:
+    - name: Install the latest version of drivers
+      ansible.builtin.package:
+        name:
+          - exfat-fuse # For exfat storage, this handle rights for fstab for example
+        state: latest

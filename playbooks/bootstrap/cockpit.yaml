@@ -1,0 +1,11 @@
+- name: Setup Cockpit
+  hosts: all
+
+  become: yes
+
+  tasks:
+    - name: Install the latest version of Cockpit
+      ansible.builtin.package:
+        name:
+          - cockpit
+        state: latest

@@ -1,0 +1,52 @@
+---
+- name: gitea
+  hosts: all
+
+  vars:
+    app_name: gitea
+    app_image: docker.io/gitea/gitea:1.20.5
+
+  # Run suitable scripts
+  tasks:
+
+    - name: create {{ app_name }} data directory
+      file:
+        path: "{{data_path}}/repository"
+        state: directory
+        mode: '0500'
+        owner: 1000
+        group: 1000
+
+    - name: Pull {{ app_name }} Image
+      containers.podman.podman_image:
+        name: "{{ app_image }}"
+        state: present
+
+    - name: Create {{app_name}} Container
+      containers.podman.podman_container:
+        name: "{{ app_name }}"
+        image: "{{ app_image }}"
+        state: started
+        recreate: yes
+        ulimit: host
+        env:
+          USER_UID: 1000
+          USER_GID: 1000
+        ports:
+          - "3000:3000"
+          - "2222:2222"
+        expose:
+          - "3000"
+          - "2222"
+        volumes:
+          - "{{data_path}}/repository:/data"
+        generate_systemd:
+          path: "~/.config/systemd/user/"
+          restart_policy: always
+    
+    - name: Enable service restart
+      ansible.builtin.systemd:
+        name: "container-{{app_name}}.service"
+        enabled: true
+        scope: user
+
